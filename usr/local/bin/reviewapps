@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+shopt -s expand_aliases
+source /usr/local/bin/reviewapps-helpers.sh
+
+function printHelp() {
+    errorMessage "Usage: $0 <command> <project-name> [branch-id] [source-dir]"
+    errorMessage "command"
+    errorMessage "\tup - Start project-branch app"
+    errorMessage "\t\t$0 up my-project dev-165-feature /home/gitlab-runner/src"
+    errorMessage "\tdown - Stop project-branch app"
+    errorMessage "\t\t$0 down my-project dev-165-feature"
+    errorMessage "\tnew-project - Initialize new project"
+    errorMessage "\t\t$0 new-project my-project"
+
+    exit 1
+}
+
+case "$1" in
+    up)
+        reviewapps-up.sh "${@:2}"
+        exit $?
+    ;;
+
+    down)
+        reviewapps-down.sh "${@:2}"
+        exit $?
+    ;;
+
+    new-project)
+        projectName=${2:?"<project name> attribute is missing!"}
+        projectDir=$(getProjectDir "$projectName")
+        [[ -d "$projectDir" ]] && { errorMessage "Project $projectName already exists!"; exit 1; }
+        mkdir -p "${projectDir}/bin"
+        mkdir -p "${projectDir}/apps"
+        echo '#!/usr/bin/env bash' > "${projectDir}/bin/build.sh"
+        chmod +x "${projectDir}/bin/build.sh"
+    ;;
+
+    *)
+        printHelp
+    ;;
+esac
+
+exit 0
